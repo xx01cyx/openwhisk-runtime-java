@@ -19,6 +19,7 @@ package org.apache.openwhisk.runtime.java.action;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -26,7 +27,9 @@ import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -142,6 +145,10 @@ public class Proxy {
                 InputStream is = t.getRequestBody();
                 JsonParser parser = new JsonParser();
                 JsonObject body = parser.parse(new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))).getAsJsonObject();
+
+                System.out.println(t.getRequestHeaders().toString());
+                System.out.println(body.toString());
+                
                 JsonParser json = new JsonParser();
                 JsonObject payloadForJsonObject = json.parse("{}").getAsJsonObject();
                 JsonArray payloadForJsonArray = json.parse("[]").getAsJsonArray();
@@ -153,6 +160,19 @@ public class Proxy {
                     payloadForJsonArray = inputJsonElement.getAsJsonArray();
                     isJsonObjectParam = false;
                 }
+
+                JsonArray containerAddrs = json.parse("[]").getAsJsonArray();
+                JsonElement containerAddrsJsonArray = body.get("container_addrs");
+                String nextContainerAddr = "";
+                if (containerAddrsJsonArray != null && containerAddrsJsonArray.isJsonArray()) {
+                    containerAddrs = containerAddrsJsonArray.getAsJsonArray();
+                    if (containerAddrs.size() > 0) {
+                        nextContainerAddr = containerAddrs.remove(0).getAsString();
+                    }
+                }
+
+                System.out.println(nextContainerAddr);
+                System.out.println(containerAddrs.toString());
 
                 HashMap<String, String> env = new HashMap<String, String>();
                 Set<Map.Entry<String, JsonElement>> entrySet = body.entrySet();
@@ -193,6 +213,42 @@ public class Proxy {
                 if (output == null) {
                     throw new NullPointerException("The action returned null");
                 }
+
+                if (!nextContainerAddr.isEmpty()) {
+                    JsonObject newRequest = new JsonObject();
+                    newRequest.add("value", JsonParser.parseString(output.toString()));
+                    if (!(containerAddrs.isEmpty())) {
+                        newRequest.add("container_addrs", containerAddrs);
+                    }
+                    String request = newRequest.toString();
+
+                    URL nextContainer = new URL("http://" + nextContainerAddr + "/run");
+                    HttpURLConnection connection = (HttpURLConnection) nextContainer.openConnection();
+                    connection.setRequestMethod("POST");
+                    connection.setDoOutput(true);
+                    DataOutputStream wr = new DataOutputStream (connection.getOutputStream());
+                    System.out.println("request: " +  newRequest.toString());
+                    wr.writeBytes(request);
+                    wr.flush();
+                    wr.close();
+
+                    InputStream nextIs = connection.getInputStream();
+                    BufferedReader rd = new BufferedReader(new InputStreamReader(nextIs));
+                    StringBuffer response = new StringBuffer(); // or StringBuffer if Java version 5+
+                    String line;
+                    while ((line = rd.readLine()) != null) {
+                        response.append(line);
+                        response.append('\r');
+                    }
+                    rd.close();
+
+                    System.out.println("response from the next container: " + response.toString());
+
+                    output = response.toString();
+                }
+
+                System.out.println("final outout: " + output.toString());
+
 
                 Proxy.writeResponse(t, 200, output.toString());
                 return;
