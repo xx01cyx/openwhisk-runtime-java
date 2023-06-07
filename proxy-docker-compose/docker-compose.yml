@@ -1,0 +1,23 @@
+version: "3.9"
+services:
+  request-sender:
+    image: "xx01cyx/curl"
+    volumes:
+      - /home/cyx/openwhisk-runtime-java/proxy-docker-compose/payload:/payload
+    command: tail -f /dev/null
+  proxy-1:
+    image: "xx01cyx/whisk-zcot-jdk:v3.3"
+    privileged: true
+    volumes:
+      - /home/cyx/openwhisk-runtime-java/proxy-docker-compose/payload:/payload
+  proxy-2:
+    image: "xx01cyx/whisk-zcot-jdk:v3.3"
+    privileged: true
+    volumes:
+      - /home/cyx/openwhisk-runtime-java/proxy-docker-compose/payload:/payload
+
+# curl proxy-1:8080/init -X POST -d @/payload/init-sender.json
+# curl proxy-1:8080/run -X POST -d @/payload/run-sender.json
+
+# b DSMRegionManager::DSMRegionManager
+# b SparseDCRMap::SparseDCRMap

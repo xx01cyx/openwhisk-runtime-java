@@ -1,0 +1,1 @@
+{"action_name":"/guest/sender","action_version":"0.0.3","activation_id":"3db3864323fa489cb3864323fa989c3d","container_addrs":["proxy-2:8080"],"deadline":"1683347620458","namespace":"guest","transaction_id":"pFNTt2vmxc9wkOcKpES11378rObbWQgO","value":{"_actions":["/guest/sender","/guest/receiver"],"size":12}}

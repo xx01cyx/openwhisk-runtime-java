@@ -1,0 +1,14 @@
+version: "3.9"
+services:
+  simple-sender:
+    image: "xx01cyx/simple-proxy:zcot-v3.3"
+    privileged: true
+    command: tail -f /dev/null
+  simple-proxy:
+    image: "xx01cyx/simple-proxy:zcot-v3.3"
+    privileged: true
+    command: tail -f /dev/null
+
+# java -XX:+IgnoreUnrecognizedVMOptions -XX:+UnlockExperimentalVMOptions -XX:-UseBiasedLocking -XX:-TieredCompilation -XX:-UseCompressedOops -XX:+UseRDMA -XX:+UseAppCDS -XX:MaxDSMDepSize=0 -XX:DSMHost=172.18.0.1 -XX:DSMPort=9034 -XX:ListenPort=20001 -XX:SharedArchiveFile=sender.jsa --enable-preview -cp ".:./gson-2.9.0.jar" SimpleSender
+# java -XX:+IgnoreUnrecognizedVMOptions -XX:+UnlockExperimentalVMOptions -XX:-UseBiasedLocking -XX:-TieredCompilation -XX:-UseCompressedOops -XX:+UseRDMA -XX:+UseAppCDS -XX:MaxDSMDepSize=0 -XX:DSMHost=172.18.0.1 -XX:DSMPort=9034 -XX:ListenPort=20001 -XX:SharedArchiveFile=sender.jsa --enable-preview -cp ".:./http-20070405.jar:./gson-2.9.0.jar" SimpleProxy
+
