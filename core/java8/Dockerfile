@@ -16,7 +16,7 @@
 #
 
 # Use AdoptOpenJDK's JDK8, OpenJ9, ubuntu
-FROM ibm-semeru-runtimes:open-8u362-b09-jdk-focal
+FROM xx01cyx/zcot-jdk:v3.3
 
 RUN rm -rf /var/lib/apt/lists/* \
     && apt-get clean \
@@ -34,12 +34,19 @@ ENV LANG="en_US.UTF-8" \
 	UPDATE=222 \
 	BUILD=10
 
+RUN apt-get update && apt-get -y install iproute2
+
+RUN apt-get install -y build-essential gdb
+
 ADD proxy /javaAction
 
 RUN cd /javaAction \
 	&& rm -rf .classpath .gitignore .gradle .project .settings Dockerfile build \
 	&& ./gradlew oneJar \
+	# && rm -rf /javaAction/src
 	&& rm -rf /javaAction/src \
 	&& ./compileClassCache.sh
 
-CMD ["java", "-Dfile.encoding=UTF-8", "-Xshareclasses:cacheDir=/javaSharedCache,readonly", "-Xquickstart", "-jar", "/javaAction/build/libs/javaAction-all.jar"]
+# CMD ["java", "-Dfile.encoding=UTF-8", "-Xshareclasses:cacheDir=/javaSharedCache,readonly", "-Xquickstart", "-jar", "/javaAction/build/libs/javaAction-all.jar"]
+# v1.8-debug
+CMD cd /javaAction && ./startServer.sh

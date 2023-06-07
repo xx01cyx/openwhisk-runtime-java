@@ -16,7 +16,15 @@
 # limitations under the License.
 #
 #### Construct Class Cache with HTTP Server classes by starting the server ####
-java "-Xshareclasses:cacheDir=/javaSharedCache/" "-Xquickstart" "-jar" "/javaAction/build/libs/javaAction-all.jar" &
-HTTP_PID=$!
-sleep 2
-kill $HTTP_PID
+cd /javaAction/build/libs
+
+# java "-Xshareclasses:cacheDir=/javaSharedCache/" "-Xquickstart" "-jar" "/javaAction/build/libs/javaAction-all.jar" &
+# v1.2-debug v1.6-debug
+# java -Xshare:off -XX:-UseCompressedOops -XX:-UseCompressedClassPointers -XX:+UseAppCDS -XX:+PrintClassHistogramBeforeFullGC -XX:DumpLoadedClassList=/proxy/proxy.lst -jar javaAction-all.jar &
+# v1.3-debug v1.4-debug v1.5-debug
+# java -Xshare:off -XX:-UseCompressedOops -XX:-UseCompressedClassPointers -XX:+UseAppCDS -XX:DumpLoadedClassList=proxy.lst -cp javaAction-all.jar org.apache.openwhisk.runtime.java.action.Proxy &
+# HTTP_PID=$!
+# sleep 2
+# kill $HTTP_PID
+java -Xshare:dump -XX:-UseCompressedOops -XX:-UseCompressedClassPointers -XX:+UseAppCDS -XX:SharedClassListFile=/javaAction/proxy.lst -XX:SharedArchiveFile=/javaAction/proxy.jsa -Xlog:class+path=info -jar javaAction-all.jar
+# java -Xshare:dump -XX:-UseCompressedOops -XX:+UseAppCDS -XX:SharedClassListFile=proxy.lst -XX:SharedArchiveFile=proxy.jsa -Xlog:class+path=info -cp javaAction-all.jar org.apache.openwhisk.runtime.java.action.Proxy
